@@ -127,5 +127,3 @@ graph.add_edge(6, 7, capacity=16)
 ff = FordFulkerson(graph, 0, 7)
 print(ff.get_max_flow())
 print(ff.get_flow())
-from networkx.algorithms.flow import maximum_flow
-print(maximum_flow(graph, 0, 7))
