@@ -19,7 +19,7 @@ class FordFulkerson:
                                             self.sink_vertice))
 
             # take the minimal additional flow of this path and the edges
-            path_flow, path_edges = self.__min_flow(path)
+            path_flow, path_edges = self.__min_residual_flow(path)
 
             # update flow values, remove edge and add with new capacity
             for edge in path_edges:
@@ -27,27 +27,28 @@ class FordFulkerson:
 
                 # update capacity value
                 capacity = self.get_capacity(vertice_from, vertice_to)
-
-                # remove edge
-                self.residual_graph.remove_edge(vertice_from, vertice_to)
-
-                # add edge with new capacity if it is greater than 0
                 new_capacity = capacity - path_flow
-                if new_capacity > 0:
-                    self.residual_graph.add_edge(vertice_from, vertice_to,
-                                                 capacity=new_capacity)
+                self.change_capacity(vertice_from, vertice_to, new_capacity)
+
+                # remove edge if it's smaller or equal to zero
+                if new_capacity <= 0:
+                    self.residual_graph.remove_edge(vertice_from, vertice_to)
 
                 # add anti parallel edge
-                residual_graph_edges = self.residual_graph.edges
-                if (vertice_to, vertice_from) in residual_graph_edges:
+                if (vertice_to, vertice_from) in self.residual_graph.edges:
                     capacity = self.get_capacity(vertice_to, vertice_from)
-                    self.residual_graph.remove_edge(vertice_to, vertice_from)
+                    new_capacity = capacity + path_flow
+                    self.change_capacity(vertice_to, vertice_from, new_capacity)
                 else:
-                    capacity = 0
-                capacity += path_flow
+                    capacity = path_flow
+                    self.residual_graph.add_edge(vertice_to, vertice_from,
+                                                 capacity=capacity)
 
-                self.residual_graph.add_edge(vertice_to, vertice_from,
-                                             capacity=capacity)
+    def change_capacity(self, vertice_from: int, vertice_to: int,
+                        new_flow: float) -> None:
+        self.residual_graph.remove_edge(vertice_from, vertice_to)
+        self.residual_graph.add_edge(vertice_from, vertice_to,
+                                     capacity=new_flow)
 
     def get_capacity(self, vertice_from: int, vertice_to: int) -> float:
         """Returns the capacity of an edge"""
@@ -81,8 +82,8 @@ class FordFulkerson:
 
         return max_flow
 
-    def __min_flow(self, path_vertices: List[int]) -> Tuple[float,
-                                                            List[Tuple[int, int]]]:
+    def __min_residual_flow(self, path_vertices: List[int]) -> Tuple[float,
+                                                                     List[Tuple[int, int]]]:
         """Returns the min additional flow of the path"""
         num_vertices = len(path_vertices)
         result = float("inf")
@@ -99,31 +100,31 @@ class FordFulkerson:
 graph = nx.DiGraph()
 
 # Ex. 1
-graph.add_edge(0, 1, capacity=13)
-graph.add_edge(0, 3, capacity=10)
-graph.add_edge(0, 5, capacity=10)
-graph.add_edge(1, 2, capacity=24)
-graph.add_edge(2, 4, capacity=1)
-graph.add_edge(2, 7, capacity=9)
-graph.add_edge(3, 1, capacity=5)
-graph.add_edge(3, 5, capacity=15)
-graph.add_edge(3, 6, capacity=7)
-graph.add_edge(4, 6, capacity=6)
-graph.add_edge(4, 7, capacity=13)
-graph.add_edge(5, 6, capacity=15)
-graph.add_edge(6, 7, capacity=16)
+#graph.add_edge(0, 1, capacity=13)
+#graph.add_edge(0, 3, capacity=10)
+#graph.add_edge(0, 5, capacity=10)
+#graph.add_edge(1, 2, capacity=24)
+#graph.add_edge(2, 4, capacity=1)
+#graph.add_edge(2, 7, capacity=9)
+#graph.add_edge(3, 1, capacity=5)
+#graph.add_edge(3, 5, capacity=15)
+#graph.add_edge(3, 6, capacity=7)
+#graph.add_edge(4, 6, capacity=6)
+#graph.add_edge(4, 7, capacity=13)
+#graph.add_edge(5, 6, capacity=15)
+#graph.add_edge(6, 7, capacity=16)
 
 #Ex. 2
-#graph.add_edge(0, 1, capacity=10)
-#graph.add_edge(0, 3, capacity=10)
-#graph.add_edge(1, 2, capacity=4)
-#graph.add_edge(1, 3, capacity=2)
-#graph.add_edge(1, 4, capacity=8)
-#graph.add_edge(2, 5, capacity=10)
-#graph.add_edge(3, 4, capacity=9)
-#graph.add_edge(4, 2, capacity=6)
-#graph.add_edge(4, 5, capacity=10)
+graph.add_edge(0, 1, capacity=10)
+graph.add_edge(0, 3, capacity=10)
+graph.add_edge(1, 2, capacity=4)
+graph.add_edge(1, 3, capacity=2)
+graph.add_edge(1, 4, capacity=8)
+graph.add_edge(2, 5, capacity=10)
+graph.add_edge(3, 4, capacity=9)
+graph.add_edge(4, 2, capacity=6)
+graph.add_edge(4, 5, capacity=10)
 
-ff = FordFulkerson(graph, 0, 7)
+ff = FordFulkerson(graph, 0, 5)
 print(ff.get_max_flow())
 print(ff.get_flow())
